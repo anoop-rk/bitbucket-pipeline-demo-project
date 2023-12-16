@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>5f88d8e4-7f6b-4a38-ae77-6e3b9689156b</groupId>
+	<artifactId>bitbucket-pipeline-demo-project</artifactId>
+	<version>1.0.0</version>
+	<packaging>mule-application</packaging>
+
+	<name>bitbucket-pipeline-demo-project</name>
+
+	<properties>
+		<deployment.ap.orgid>5f88d8e4-7f6b-4a38-ae77-6e3b9689156b</deployment.ap.orgid>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+		<app.runtime.semver>4.4.0</app.runtime.semver>
+		<app.runtime>4.4.0-20230822</app.runtime>
+		<mule.maven.plugin.version>4.0.0</mule.maven.plugin.version>
+		<munit.version>2.3.14</munit.version>
+		<maven.resources.plugin.version>3.3.1</maven.resources.plugin.version>
+		<exchange.mule.maven.plugin.version>0.0.20</exchange.mule.maven.plugin.version>
+
+		<api.layer.eapi>Experience</api.layer.eapi>
+		<api.layer.papi>Process</api.layer.papi>
+		<api.layer.sapi>System</api.layer.sapi>
+		<api.layer.backend>Backend</api.layer.backend>
+		<api.layer.none>None</api.layer.none>
+
+		<mule.env>set with -Dmule.env=...</mule.env>
+		<deployment.prefix/>
+		<!-- no prefix for this project may be used for automated deployments -->
+		<deployment.suffix>-${mule.env}</deployment.suffix>
+		<deployment.name>${deployment.prefix}${project.artifactId}${deployment.suffix}</deployment.name>
+		<!-- 2 minutes per attempt (to check if app has started) times 10 attempts 
+			(10 is hard-coded) = 2*60*1000*10 = 1200000 -->
+		<deployment.timeoutMillis>1200000</deployment.timeoutMillis>
+
+		<!-- master\subOrg1\subOrg2 -->
+		<ap.businessGroup/>
+		<!-- requires AP environments to have the same name as the env property 
+			value in Mule apps (which determines the property files to load) -->
+		<ap.environment>${mule.env}</ap.environment>
+
+		<!-- for automated deployments to CH -->
+		<ch.space>Cloudhub-US-East-2</ch.space>
+		<ch.replicas>1</ch.replicas>
+		<!-- 0.1,0.5, ... -->
+		<ch.vCores>0.1</ch.vCores>
+		<!-- for API autodiscovery -->
+		<ap.client_id>set with -Dap.client_id=...</ap.client_id>
+		<ap.client_secret>set with -Dap.client_secret=...</ap.client_secret>
+		<!-- for Connected app deployment -->
+		<ap.ca.client_id>set with -Dap.ca.client_id=...</ap.ca.client_id>
+		<ap.ca.client_secret>set with -Dap.ca.client_secret=...</ap.ca.client_secret>
+		<api.layer>${api.layer.sapi}</api.layer>
+	</properties>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-clean-plugin</artifactId>
+				<version>3.2.0</version>
+			</plugin>
+			<plugin>
+				<groupId>org.mule.tools.maven</groupId>
+				<artifactId>mule-maven-plugin</artifactId>
+				<version>${mule.maven.plugin.version}</version>
+				<extensions>true</extensions>
+				<configuration>
+					<cloudhub2Deployment>
+						<businessGroup>${ap.businessGroup}</businessGroup>
+						<environment>${ap.environment}</environment>
+						<target>${ch.space}</target>
+						<muleVersion>${app.runtime.semver}</muleVersion>
+						<provider>MC</provider>
+						<replicas>${ch.replicas}</replicas>
+						<vCores>${ch.vCores}</vCores>
+						<applicationName>${deployment.name}</applicationName>
+						<deploymentTimeout>${deployment.timeoutMillis}</deploymentTimeout>
+						<connectedAppClientId>${ap.ca.client_id}</connectedAppClientId>
+						<connectedAppClientSecret>${ap.ca.client_secret}</connectedAppClientSecret>
+						<connectedAppGrantType>client_credentials</connectedAppGrantType>
+
+						<properties>
+							<anypoint.platform.config.analytics.agent.enabled>true</anypoint.platform.config.analytics.agent.enabled>
+							<anypoint.platform.visualizer.displayName>${project.name}</anypoint.platform.visualizer.displayName>
+							<!-- api.layer must be set in every concrete Mule app! -->
+							<anypoint.platform.visualizer.layer>${api.layer}</anypoint.platform.visualizer.layer>
+							<mule.env>${mule.env}</mule.env>
+							<!-- concrete Mule apps can provide their own props which will be 
+								merged with the props given here -->
+						</properties>
+						<secureProperties>
+							<secure.key>${secure.key}</secure.key>
+							<anypoint.platform.client_id>${ap.client_id}</anypoint.platform.client_id>
+							<anypoint.platform.client_secret>${ap.client_secret}</anypoint.platform.client_secret>
+							<sumo.server>${sumo.server}</sumo.server>
+						</secureProperties>
+						<deploymentSettings>
+							<http>
+								<inbound>
+									<lastMileSecurity>true</lastMileSecurity>
+								</inbound>
+							</http>
+							<generateDefaultPublicUrl>false</generateDefaultPublicUrl>
+						</deploymentSettings>
+						<integrations>
+							<services>
+								<objectStoreV2>
+									<enabled>true</enabled>
+								</objectStoreV2>
+							</services>
+						</integrations>
+					</cloudhub2Deployment>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.mulesoft.munit.tools</groupId>
+				<artifactId>munit-maven-plugin</artifactId>
+				<version>${munit.version}</version>
+				<executions>
+					<execution>
+						<id>test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>test</goal>
+							<goal>coverage-report</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<runtimeVersion>${app.runtime}</runtimeVersion>
+					<runtimeProduct>MULE_EE</runtimeProduct>
+					<environmentVariables>
+						<encrypt.key>${secure.key}</encrypt.key>
+					</environmentVariables>
+					<coverage>
+						<runCoverage>true</runCoverage>
+						<failBuild>true</failBuild>
+						<requiredApplicationCoverage>80</requiredApplicationCoverage>
+						<requiredResourceCoverage>80</requiredResourceCoverage>
+						<requiredFlowCoverage>80</requiredFlowCoverage>
+						<ignoreFiles>
+							<ignoreFile>error.xml</ignoreFile>
+							<ignoreFile>api.xml</ignoreFile>
+							<ignoreFile>global.xml</ignoreFile>
+						</ignoreFiles>
+						<formats>
+							<format>console</format>
+							<format>html</format>
+							<format>json</format>
+							<format>sonar</format>
+						</formats>
+					</coverage>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.mulesoft.modules</groupId>
+			<artifactId>mule-secure-configuration-property-module</artifactId>
+			<version>1.2.5</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.connectors</groupId>
+			<artifactId>mule-http-connector</artifactId>
+			<version>1.8.1</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.modules</groupId>
+			<artifactId>mule-apikit-module</artifactId>
+			<version>1.9.2</version>
+			<classifier>mule-plugin</classifier>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>munit-runner</artifactId>
+			<version>3.0.0</version>
+			<classifier>mule-plugin</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.mulesoft.munit</groupId>
+			<artifactId>munit-tools</artifactId>
+			<version>3.0.0</version>
+			<classifier>mule-plugin</classifier>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mule.weave</groupId>
+			<artifactId>assertions</artifactId>
+			<version>1.2.1</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>5f88d8e4-7f6b-4a38-ae77-6e3b9689156b</groupId>
+			<artifactId>demo-api</artifactId>
+			<version>1.0.0</version>
+			<classifier>raml</classifier>
+			<type>zip</type>
+		</dependency>
+	</dependencies>
+	<repositories>
+		<repository>
+			<id>anypoint-exchange-v3</id>
+			<name>Anypoint Exchange V3</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>anypoint-exchange-v3-${deployment.ap.orgid}</id>
+			<name>Anypoint Exchange</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/maven</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>mulesoft-releases</id>
+			<name>MuleSoft Releases Repository</name>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<layout>default</layout>
+		</repository>
+		<repository>
+			<id>releases-ee</id>
+			<name>Mule Release Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases-ee/</url>
+		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>mulesoft-releases</id>
+			<name>MuleSoft Releases Repository</name>
+			<layout>default</layout>
+			<url>https://repository.mulesoft.org/releases/</url>
+			<snapshots>
+				<enabled>false</enabled>
+			</snapshots>
+		</pluginRepository>
+		<pluginRepository>
+			<id>releases-ee</id>
+			<name>Mule Release Repository</name>
+			<url>https://repository.mulesoft.org/nexus/content/repositories/releases-ee/</url>
+		</pluginRepository>
+	</pluginRepositories>
+	<distributionManagement>
+		<repository>
+			<id>anypoint-exchange-v3-${deployment.ap.orgid}</id>
+			<name>AnyAirline Anypoint Exchange</name>
+			<url>https://maven.anypoint.mulesoft.com/api/v3/organizations/${deployment.ap.orgid}/maven</url>
+			<layout>default</layout>
+		</repository>
+	</distributionManagement>
+</project>

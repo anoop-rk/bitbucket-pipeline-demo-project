@@ -1,0 +1,72 @@
+#  CICD pipeline for deploying mule applications to Cloudhub.
+
+# Prerequisites: pom.xml and appropriate project structure should exist in the repository.
+
+image: maven:3.8.4-openjdk-8
+
+definitions:
+  steps:
+    - step: &test
+        name: Build and test
+        caches:
+          - maven
+        script:
+          # Building Mule App
+          - mvn -B -s settings.xml 
+            -Dmule.env=$DEPLOYMENT_ENV 
+            -Dsecure.key=$SECURE_KEY
+            clean test
+
+    - step: &publish
+        name: Publish to Exchange
+        caches:
+          - maven
+        script:
+          # Building Mule App
+          - mvn -B -s settings.xml 
+            -Dmule.env=$DEPLOYMENT_ENV 
+            -Dsecure.key=$SECURE_KEY
+            deploy
+
+    - step: &deploy
+        name: 'Deploy to Cloudhub'
+        caches:
+          - maven
+        script:
+          - mvn -B -s settings.xml
+            -DmuleDeploy deploy 
+            -Dap.client_id=$CLIENT_ID 
+            -Dap.client_secret=$CLIENT_SECRET
+            -Dap.ca.client_id=$CONNECTED_APP_CLIENT_ID 
+            -Dap.ca.client_secret=$CONNECTED_APP_CLIENT_SECRET 
+            -Dap.environment=$ANYPOINT_ENV 
+            -Dmule.env=$DEPLOYMENT_ENV 
+            -DskipTests
+
+pipelines:  
+  branches:
+    dev:
+      - stage:
+          name: 'Build and Deploy to Dev`'
+          deployment: dev
+          steps:
+            - step: *test
+            - step: *publish
+            - step: *deploy 
+      
+    sit:
+      - stage:
+          name: 'Build and Deploy to Sit`'
+          deployment: sit
+          steps:
+            - step: *test
+            - step: *deploy 
+
+    main:
+      - stage:
+          name: 'Build and Deploy to Prod`'
+          deployment: prod       
+          steps:
+            - step: *test
+            - step: *deploy
+          

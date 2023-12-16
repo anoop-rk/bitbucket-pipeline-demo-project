@@ -1,0 +1,21 @@
+<settings>
+	<servers>
+		<server>
+			<id>anypoint-exchange-v3</id>
+			<username>~~~Client~~~</username>
+			<password>${EXCHANGE_CONNECTED_APP_CLIENT_ID}~?~${EXCHANGE_CONNECTED_APP_CLIENT_SECRET}
+			</password>
+		</server>
+		<server>
+			<id>anypoint-exchange-v3-${ANYPOINT_ORG_ID}</id>
+			<username>~~~Client~~~</username>
+			<password>${EXCHANGE_CONNECTED_APP_CLIENT_ID}~?~${EXCHANGE_CONNECTED_APP_CLIENT_SECRET}
+			</password>
+		</server>
+		<server>
+			<id>releases-ee</id>
+			<username>${MULESOFT_ENTERPRISE_REPO_USERNAME}</username>
+			<password>${MULESOFT_ENTERPRISE_REPO_PASSWORD}</password>
+		</server>
+	</servers>
+</settings>

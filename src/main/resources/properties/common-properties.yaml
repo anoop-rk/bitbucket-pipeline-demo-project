@@ -1,0 +1,16 @@
+logger:
+  category: "com.connectx.templates.mule-template-api"
+  
+retry:
+   delayMillisecs: "3000"
+   numRetries: "2"
+   
+response:
+  timeout: "500000"
+  
+api:
+  majorVersion: "v1"
+  
+https:
+  port: "8082"
+  

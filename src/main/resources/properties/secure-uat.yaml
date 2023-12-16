@@ -1,0 +1,22 @@
+api:
+  id: "19056856"
+  
+apikitConsole:
+  state: "stopped" #started Note: Should be "stopped" for production deployment as it is a security vulnerability by exposing this endpoint.
+  
+tls.keystore: 
+  type: "pkcs12"
+  path: "certs/mule-template-api-uat.p12"
+  alias: "server"
+  password: "![1BD0yBCk01U=]"
+  keyPassword: "![1BD0yBCk01U=]" 
+ 
+dogCeoAPI:
+  clientId: ""
+  clientSecret: ""
+  host: "dog.ceo"
+  basepath: "/api"
+  port: "443"
+  getBreeds: 
+    httpMethod: "GET"
+    path: "/breeds/list/all"

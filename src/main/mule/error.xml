@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+
+	<error-handler name="global-error-handler"
+		doc:id="151ada46-ced9-4ed3-9e97-909c6f4e367c">
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="e30edf57-7e08-4e20-b786-0f30aa7f1729" type="APIKIT:NOT_FOUND">
+			<set-variable value="404" doc:name="httpStatus"
+				doc:id="09fed41c-b1e8-4e21-bc27-4262603c340b"
+				variableName="httpStatus" />
+			<flow-ref doc:name="Generating Dynamic Error Message"
+				doc:id="ed58e823-93ed-4091-9b5f-01c18a795e35" name="error-sub-flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="433d3ca1-8dcf-4638-b27c-477bac8f3c00"
+			type="APIKIT:METHOD_NOT_ALLOWED">
+			<set-variable value="405" doc:name="httpStatus"
+				doc:id="8242f408-f3e7-437b-a03f-9e2dfcaf8ca1"
+				variableName="httpStatus" />
+			<flow-ref doc:name="Generating Dynamic Error Message"
+				doc:id="85f7336a-e02e-49d7-82ba-0f9ee5aa7835" name="error-sub-flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="10c81d62-1228-44d3-852e-c16171d55c04"
+			type="APIKIT:NOT_ACCEPTABLE">
+			<set-variable value="406" doc:name="httpStatus"
+				doc:id="3f704738-a261-45b6-8195-b5f285c264d3"
+				variableName="httpStatus" />
+			<flow-ref doc:name="Generating Dynamic Error Message"
+				doc:id="f48a72b9-fd38-416d-a64f-8ffc9c1b5c22" name="error-sub-flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="d9f5c794-f70e-4e96-b3e0-21ff0ce2110b"
+			type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+			<set-variable value="415" doc:name="httpStatus"
+				doc:id="084c9f71-2e6a-4f3e-84ad-7dda4824d84a"
+				variableName="httpStatus" />
+			<flow-ref doc:name="Generating Dynamic Error Message"
+				doc:id="ce92e462-24ea-4468-9013-631be2922054" name="error-sub-flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="85bdd6d8-323d-4ee4-9d9a-657f3bc04570"
+			type="APIKIT:NOT_IMPLEMENTED">
+			<set-variable value="416" doc:name="httpStatus"
+				doc:id="cfa058e0-ee7a-4763-ac8d-9b5f19a4f1d3"
+				variableName="httpStatus" />
+			<flow-ref doc:name="Generating Dynamic Error Message"
+				doc:id="4f6b0525-b64e-4699-871b-4d9386b4c284" name="error-sub-flow" />
+		</on-error-propagate>
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="239c38d5-9588-4124-ba90-4be813d98645"
+			type="APIKIT:BAD_REQUEST">
+			<set-variable value="400" doc:name="httpStatus"
+				doc:id="f0e14422-9232-4fbd-a703-1d0eb84aea67"
+				variableName="httpStatus" />
+			<flow-ref doc:name="Generating Dynamic Error Message"
+				doc:id="580b6ce5-c7ba-438a-bc29-71335bda3194" name="error-sub-flow" />
+		</on-error-propagate>
+
+		<on-error-propagate enableNotifications="true"
+			logException="true" doc:name="On Error Propagate"
+			doc:id="5528353f-efd7-4334-bfab-1f55e0331f87" type="ANY">
+			<set-variable value="500" doc:name="httpStatus"
+				doc:id="1ce9a2c7-f00f-4a5a-b955-9f2a364f3520"
+				variableName="httpStatus" />
+			<flow-ref doc:name="Generating Dynamic Error Message"
+				doc:id="846959da-93be-4b40-95b0-f6b2c7856e96" name="error-sub-flow" />
+		</on-error-propagate>
+	</error-handler>
+	<sub-flow name="error-sub-flow" doc:id="cd5b845a-657b-4d1e-bcfa-58b4089d7b2b" >
+		<logger level="INFO" doc:name="INFO: Start Logger" doc:id="d4c6f1a6-ea49-4e99-82a2-3f33b56aec96" message="Error Sub Flow" category="${logger.category}.error-sub-flow"/>
+		<ee:transform doc:name="Error Json" doc:id="5ada42b5-ed76-490d-afbf-4e162fd47fdf" >
+			<ee:message >
+				<ee:set-payload resource="dwl/error-message-payload.dwl" />
+			</ee:message>
+		</ee:transform>
+		<logger level="ERROR" doc:name="Logging Error Json" doc:id="56dba6b4-48fd-486c-bf0e-e7b665c43bee" message="#[payload]" category="${logger.category}.error-sub-flow"/>
+    <logger level="INFO" doc:name="INFO: End Logger" doc:id="9366eede-c2e6-4584-afcc-03869b31e572" message="Error Sub Flow" category="${logger.category}.error-sub-flow"/>
+	</sub-flow>
+	<error-handler name="console-error-handler" doc:id="a7608e7b-0871-4497-a239-4f1e55061ce6">
+	<on-error-propagate type="APIKIT:NOT_FOUND">
+                <ee:transform doc:name="Transform Message">
+                    <ee:message>
+                        <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{message: "Resource not found"}]]></ee:set-payload>
+                    </ee:message>
+                    <ee:variables>
+                        <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+                    </ee:variables>
+                </ee:transform>
+            </on-error-propagate>
+	</error-handler>
+	
+	</mule>
